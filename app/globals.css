@@ -1,26 +1,483 @@
-@import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+
+/* base styles */
+* {
+  margin: 0;
+  font-family: "Quicksand";
+  color: #333;
+} 
+.navbar {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-bottom: 1px solid #f2f2f2;
+}
+.navbar h1 {
+  color: #f1356d;
+}
+.navbar .links {
+  margin-left: auto;
+}
+.navbar a {
+  margin-left: 16px;
+  text-decoration: none;
+  padding: 6px;
+}
+.navbar a:hover {
+  color: #f1356d;
+}
+.navbar label:hover{
+  color: #f1356d; 
+}
+.navbar label{
+    margin-left: 20px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+
+
+.dropdown-content {
+  display: block; /* Managed by React state */
+  position: absolute;
+  background-color: transparent;
+  min-width: 160px;
+  z-index: 1;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+.content {
+  max-width: 1000px;
+  margin: 40px auto;
+  margin-top:0px;
+  padding: 20px;
+}
+
+/* blog previews / list */
+.receiptpreview {
+  padding: 10px 16px;
+  margin: 20px 0;
+  border-bottom: 1px solid #fafafa;
+  border:1px solid #000000;
+}
+.receiptpreview:hover {
+  box-shadow: 1px 3px 9px rgba(0,0,0,0.1);
+  
+}
+.receiptpreview h2 {
+  font-size: 20px;
+  color: #f1356d;
+  margin-bottom: 8px;
+}
+.manage button {
+  background: #f1356d;
+  color: #fff;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-right: 1%  ;
+}
+
+.create {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+.create label {
+  text-align: left;
+  display: block;
+}
+.create h2 {
+  font-size: 20px;
+  color: #f1356d;
+  margin-bottom: 30px;
+}
+.create input, .create textarea, .create select {
+  width: 100%;
+  padding: 6px 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  display: block;
+}
+.create button {
+  background: #f1356d;
+  color: #fff;
+  border: 0;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.create button:disabled,
+button[disabled] {
+  background-color: #cccccc; /* Grey background */
+  color: #666666;            /* Dark grey text */
+  border: 1px solid #999999;
+  cursor: not-allowed;       /* "Not allowed" cursor */
+  opacity: 0.6;              /* Faded appearance */
+}
+
+.navMonth {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  padding: 10px;
+  padding-left:90px;
+  margin-bottom: 20px;
+  margin-top: 20px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  
+  overflow-x: auto;
+}
+
+.navMonth button{
+  white-space: nowrap;
+}
+
+
+.months {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;      /* prevents wrapping */
+  gap: 10px;
+  justify-content: center;
+}
+
+.months button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+
+  border: none;
+  border-radius: 999px; 
+
+  background-color: #64748e;
+  color: white;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.months button:hover {
+  background-color: #4b5563;
+}
+
+.months button.active {
+  background-color: #dce5f4;   /* blue highlight */
+  color:#000000;
+  border: 1px solid;
+  border-color:#000000;
+  
+}
+
+.Expense {
+             /* Visible border (indigo tone) */
+    border-radius: 16px;                /* Rounded edges */
+    padding: 20px;
+    width: 250px;
+    background-color: #7f1c3a;          /* Dark card background */
+    color: #ffffff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: left;
+    align-items: center; 
+    margin-top:10px; 
+    margin-bottom: 10px;
+}
+
+.Expense:hover {
+    transform: translateY(-5px);        /* Slight lift */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    border-color: #6366f1;              /* Slightly brighter on hover */
+}
+
+/* Small label text */
+.Expense .label {
+    font-size: 1rem;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Month text */
+.Expense .month {
+    font-size: 1rem;
+    margin-bottom: 8px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* Main expense amount */
+.Expense .amount {
+    font-size: 1.8rem;
+    margin-top: 5px;
+    color:#ffffff
+}
+.Expense .amountchange {
+    font-size: 1.0rem;
+    margin-top: 5px;
+    color:#ffffff
+}
+.chart{
+  size: 1px;
+  margin-top: 20px;
+}
+
+.MonthlyReport{
+  width: 300px;
+  padding:20px;
+  fill:#999999;
+  box-shadow: 0 5px 5px rgba(0,0,0,0.4);
+  border:#999999 solid;
+  border-width: 1px;
+  border-radius: 25px;
+  margin-right:10px;
+}
+
+
+.Greeting{
+  font-size : 1.9rem;
+  display:flex;
+  margin-bottom: 10px;
+  align-items: flex-end;
+}
+.Name{
+  margin-left: 5px;
+  color:rgb(199, 59, 9);
+  padding-bottom:0%
+}
+.homecontent{
+  display:flex;
+}
+.linechart{
+  border:#a2a2a2 solid;
+  margin-left:300 px;
+  padding: 10px;
+  fill:#999999;
+  box-shadow: 0 5px 5px rgba(0,0,0,0.4);
+  border-width: 1px;
+  height:700px;
+  border-radius: 25px;
+  width:2000px;
+}
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+}
+.arrow{
+  margin-right: 6px;
+}
+
+.pieChart{
+  margin-top: 15px;
+  border-radius: 16px;                /* Rounded edges */
+  padding: 20px;
+  width: 250px;
+  background-color: #7f1c3a;          /* Dark card background */
+  color: #ffffff;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  align-items: center; 
+}
+.pie h3{
+  color:white;
+}
+
+.pieChart:hover {
+    transform: translateY(-5px);        /* Slight lift */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+
+
+
+
+
+.IncomeForm {
+    display: flex;
+    justify-content: center;
+}
+
+.IncomeForm form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    background: #fff;
+    padding: 48px;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* Month picker */
+.IncomeForm input[type="month"] {
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    color: #555;
+    outline: none;
+    cursor: pointer;
+}
+
+.IncomeForm input[type="month"]:focus {
+    border-color: #6c63ff;
+}
+
+/* Income input wrapper */
+.inputIncome {
+    display: flex;
+    align-items: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: #333;
+    gap: 8px;
+}
+
+/* Income number input — biggest and boldest */
+.inputIncome input[type="number"] {
+    font-size: 48px;
+    font-weight: 800;
+    color: #6c63ff;
+    border: none;
+    border-bottom: 3px solid #6c63ff;
+    width: 220px;
+    text-align: center;
+    outline: none;
+    background: transparent;
+    padding: 8px 0;
+}
+
+.inputIncome input[type="number"]::placeholder {
+    color: #ccc;
+    font-weight: 300;
+}
+
+/* Hide number input arrows 
+.inputIncome input[type="number"]::-webkit-inner-spin-button,
+.inputIncome input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+}*/
+
+/* Submit button */
+.IncomeForm button {
+    padding: 12px 48px;
+    background: #6c63ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.IncomeForm button:hover {
+    background: #574fd6;
+}
+
+/* ===== LOGIN & SIGNUP ===== */
+
+.login, .signup {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login h2, .signup h2 {
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.login form, .signup form {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login input, .signup input {
+  padding: 12px 16px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.login input:focus, .signup input:focus {
+  border-color: #6c63ff;
+}
+
+.login button, .signup button {
+  padding: 14px;
+  width: 100%;
+  background: #6c63ff;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.login button:hover, .signup button:hover {
+  background: #574fd6;
+}
+
+.login button:active, .signup button:active {
+  transform: scale(0.98);
+}
+
+.login button:disabled, .signup button:disabled {
+  background: #a09de0;
+  cursor: not-allowed;
+}
+
+.login p, .signup p {
+  margin-top: 16px;
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.login p a, .signup p a {
+  color: #6c63ff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login p a:hover, .signup p a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #e74c3c;
+  font-size: 0.9rem;
+  text-align: center;
 }
