@@ -1,3 +1,5 @@
+'use client';
+
 import ViewExpense from "@/components/ViewExpense";
 import ExpensePieChart from '@/components/ExpensePie';
 import LineChart from '@/components/MonthlyTrendline';
@@ -6,6 +8,7 @@ import { useAuth } from '@/app/providers';
 
 const Home = () => {
     const {user} = useAuth();
+    if (!user) return (<div>Loading...</div>)
     return ( 
         <div className="dashboard">
             <h2 className="Greeting"><span>Hello, </span> <span className = "Name"> {user.email}</span></h2> 

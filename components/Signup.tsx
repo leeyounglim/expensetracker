@@ -9,12 +9,12 @@ const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string|null>(null);
     const [isPending, setIsPending] = useState(false);
     const { signup } = useAuth();
     const router = useRouter();
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e:React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(null);
 

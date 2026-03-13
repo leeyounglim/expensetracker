@@ -3,19 +3,34 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
 
-const ReceiptForm = ({initialData, onSubmit, buttonText}) => {
+interface ReceiptProps {
+    id?: string;
+    title: string;
+    category: string;
+    date: string;
+    price: number; 
+    user_id: string;
+}
+interface ReceiptFormProps {
+    initialData: null|ReceiptProps;
+    onSubmit:(receipt: Omit<ReceiptProps, 'id'>) => Promise<void>;
+    buttonText: string;
+}
+
+const ReceiptForm = ({initialData, onSubmit, buttonText}:ReceiptFormProps) => {
     const [title,setTitle] = useState(initialData?.title || '');
     const [category, setCategory] = useState(initialData?.category ||'');
-    const [date, setDate] = useState(initialData?.date ||'');
+    const [date, setDate] = useState<string>(initialData?.date ||'');
     const [price,setPrice] = useState(initialData?.price ||'');
     const [error, setError] = useState('');
     const [isPending, setIsPending] = useState(false);
-    const { user } = useAuth(); 
+    const { user } = useAuth();
+    if (!user)return null; 
 
     const router = useRouter();
 
-    const handleChange = (e) => {
-        const value = e.target.value;
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
         if (/^\d*(\.\d{0,2})?$/.test(value)){
             setPrice(value);
             setError("");
@@ -24,9 +39,9 @@ const ReceiptForm = ({initialData, onSubmit, buttonText}) => {
         }
     }
 
-    const handleSubmit = async(e) =>{
+    const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) =>{
         
-        e.preventDefault();
+        event.preventDefault();
         const numeric = Number(price);
         setIsPending(true);
         await onSubmit({title, category, date, price:numeric, user_id: user.id});

@@ -2,14 +2,22 @@
 
 import { useEffect, useState } from "react";
 import ReceiptForm from "@/components/ReceiptForm";
-import { useRouter } from 'next/navigation'; 
+import { useRouter, useParams } from 'next/navigation'; 
 import {createClient} from '@/lib/supabase/client';
 
+interface ReceiptProps {
+    title: string;
+    category: string;
+    date: string;
+    price: number; 
+    user_id: string;
+}
 const Edit = () => {
     const router = useRouter();
+    const {id} = useParams();
     const supabase = createClient();
 
-    const [receipt, setReceipt] = useState(null);
+    const [receipt, setReceipt] = useState<ReceiptProps|null>(null);
 
     useEffect(() =>{
         const fetchReceipt = async() =>{
@@ -24,7 +32,7 @@ const Edit = () => {
         fetchReceipt();
     }, [id])
 
-    const handleEdit = async(receipt) => {
+    const handleEdit = async(receipt:ReceiptProps) => {
         const {error} = await supabase
             .from('receipts')
             .update(receipt)

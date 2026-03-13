@@ -1,8 +1,13 @@
 'use client';
 
-import { generateMonthOptions } from "./utils/Date";
+import { generateMonthOptions } from "@/lib/date";
 
-const MonthFilter = ({ selectedMonth, onMonthChange }) => {
+interface month{
+  selectedMonth:string|null;
+  onMonthChange: any
+}
+
+const MonthFilter = ({ selectedMonth, onMonthChange }:month) => {
   const monthOptions = generateMonthOptions(12);      
   return (
     <nav className="navMonth">
@@ -12,7 +17,7 @@ const MonthFilter = ({ selectedMonth, onMonthChange }) => {
             key={value}
             className={selectedMonth === value ? "active" : ""}
             onClick={() => {
-                onMonthChange(prev => prev === value ? null : value)
+                onMonthChange((prev: string|null) => prev === value ? null : value)
             }}
           >
             {label}

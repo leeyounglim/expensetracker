@@ -1,9 +1,9 @@
 //import logo from './logo.png';
 import { GrMoney } from "react-icons/gr";
 import { FaArrowTrendUp,FaArrowTrendDown } from "react-icons/fa6";
-import useFetch from "./useFetch";
-import { getCurrentMonthName, getCurrentMonthIndex } from "./utils/Date";
-import { calcMonthChange, getMonthTotal } from "./utils/getMonthTotal";
+import useFetch from "@/lib/useFetch";
+import { getCurrentMonthName, getCurrentMonthIndex } from "@/lib/date";
+import { calcMonthChange, getMonthTotal } from "@/lib/getMonthTotal";
 
 const ViewExpense = () => {
     
@@ -19,9 +19,9 @@ const ViewExpense = () => {
     }
     
     
-    let total = getMonthTotal(currMonthIndex, currYear, data);
-    const prevMonthTotal = getMonthTotal(prevMonthIndex,year, data);
-    const delta = calcMonthChange(total, prevMonthTotal);
+    let total = Number(getMonthTotal(currMonthIndex, currYear, data));
+    const prevMonthTotal = Number(getMonthTotal(prevMonthIndex,year, data));
+    const delta = Number(calcMonthChange(total, prevMonthTotal));
 
     return ( 
         <div className="Expense">

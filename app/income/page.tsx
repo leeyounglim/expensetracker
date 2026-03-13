@@ -1,10 +1,19 @@
 'use client';
 
-import useFetch from "/useFetch";
+import useFetch from "@/lib/useFetch";
 import { useState } from "react";
-import {createClient} from '@/lib/supabase/client';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
+import { createClient } from "@/lib/supabase/client";
+
+interface incomeProps {
+    month: string ;
+    income: number;
+    id?: string|null ; 
+}
+interface existsProps {
+    exists: incomeProps;
+}
 
 const Income = () => {
     const [month, setMonth] = useState('');
@@ -12,8 +21,10 @@ const Income = () => {
     const [isPending, setIsPending]  = useState(false);
     const router = useRouter();
     const { user } = useAuth();
+    if (!user)return null;
+    const supabase = createClient();
 
-    const enterIncome = async(month, income) => {
+    const enterIncome = async({month, income}:incomeProps) => {
         const {error} = await supabase
             .from('income')
             .insert({month,income, user_id: user.id})
@@ -22,7 +33,7 @@ const Income = () => {
             setIsPending(false)
             router.back()}
     }
-    const updateIncome = async(month,income, exists) => {
+    const updateIncome = async({month,income}:incomeProps, {exists}:existsProps) => {
         const {error} = await supabase
             .from('income')
             .update({month, income})
@@ -36,14 +47,14 @@ const Income = () => {
     }
     
     const {data: incomeData} = useFetch('income');
-    const handleSubmit = async(e) =>{
-        e.preventDefault();
+    const handleSubmit = async(event: React.SubmitEvent<HTMLFormElement>) =>{
+        event.preventDefault();
         setIsPending(true);
         // check if receipt exists
         const exists = Array.isArray(incomeData) && incomeData.find(entry => entry.month === month)
 
-        if (!exists){enterIncome(month,income)}
-        else {updateIncome(month,income, exists)}
+        if (!exists){enterIncome({month,income})}
+        else {updateIncome({month,income}, exists)}
     }
     return ( 
         <div className="IncomeForm">
@@ -63,7 +74,7 @@ const Income = () => {
                 type = 'number'
                  value={income} 
                  placeholder="0.00" 
-                 onChange={(e) => {setIncome(e.target.value)}}/>
+                 onChange={(e) => {setIncome(Number(e.target.value))}}/>
                  </label>
                  <br/>
 

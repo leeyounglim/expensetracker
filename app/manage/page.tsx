@@ -1,21 +1,33 @@
 'use client';
 
 import Receipts from '@/components/Receiptlist';
-import useFetch from './useFetch';
+import useFetch from '@/lib/useFetch';
 import { useState, useEffect } from 'react';
 import {createClient} from '@/lib/supabase/client';
 import { useAuth } from '@/app/providers';
 
+interface Receipt {
+    id?:string;
+    title: string;
+    category: string;
+    date: Date;
+    price: number; 
+    user_id: string;
+}
+
 const Manage = () => {
-    const [receipts,setReceipts] = useState([]);
+    const [receipts,setReceipts] = useState<Receipt[]>([]);
     const {data, isPending, error} = useFetch('receipts');
     const {user} = useAuth();
+    if (!user) return null;
+
+    const supabase = createClient();
 
     useEffect(() =>{
         if (data) setReceipts(data);
     }, [data])
 
-    const handleClick = async(id) => {
+    const handleClick = async(id:string|undefined) => {
         const {error} = await supabase
             .from('receipts')
             .delete()

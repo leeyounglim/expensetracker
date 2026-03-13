@@ -9,8 +9,8 @@ import {
   Legend,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { generateMonthOptions } from './utils/Date';
-import useFetch from './useFetch';
+import { generateMonthOptions } from '@/lib/date';
+import useFetch from '@/lib/useFetch';
 
 ChartJS.register(
   CategoryScale,
@@ -29,8 +29,8 @@ export const options = {
   plugins: {
     legend: {
                 display: true,
-                position: 'bottom',       // 'top' | 'bottom' | 'left' | 'right'
-                align: 'center',
+                position: 'bottom' as const,       // 'top' | 'bottom' | 'left' | 'right'
+                align: 'center' as const,
                 labels: {
                     color: '#333',
                     font: {

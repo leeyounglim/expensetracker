@@ -2,18 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
-import { useAuth } from "./AuthContext";
+import { useAuth } from "@/app/providers";
 import  Link from 'next/link';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string|null>(null);
     const { login } = useAuth();
     const router = useRouter();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
         setError(null);
         const { error } = await login(email, password);
         if (error) setError(error.message);

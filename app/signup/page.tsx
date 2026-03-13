@@ -7,13 +7,13 @@ const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string|null>(null);
     const [isPending, setIsPending] = useState(false);
     const { signup } = useAuth();
     const router = useRouter();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
         setError(null);
 
         if (password !== confirm) {

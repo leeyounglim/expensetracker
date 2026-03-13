@@ -1,38 +1,49 @@
-import ViewExpense from "@/components/ViewExpense";
-import ExpensePieChart from '@/components/ExpensePie';
-import LineChart from '@/components/MonthlyTrendline';
-import Savings from "@/components/Savings";
+'use client'
+
+import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
+import  Link from 'next/link';
 
-const Home = () => {
-    const {user} = useAuth();
-    return ( 
-        <div className="dashboard">
-            <h2 className="Greeting"><span>Hello, </span> <span className = "Name"> {user.email}</span></h2> 
+const Login = () => {
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [error, setError] = useState<string|null>(null);
+    const { login } = useAuth();
+    const router = useRouter();
+    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setError(null);
+        const { error } = await login(email, password);
+        if (error) setError(error.message);
+        else router.push('/');
+    };
 
-            <div className="homecontent">
-            
-                <div className="MonthlyReport">
-                    <h3>This Month's Reports</h3>
-                
-                <div className="header">
-                    <ViewExpense />
-                </div>
-                <div className="savings">
-                    <Savings />
-                </div>
-                <div className = "pieChart">
-                    <ExpensePieChart />
-                </div>
-                </div>
+    return (
+        <div className="login">
+            <h2>Login</h2>
+            <form onSubmit={handleSubmit}>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                />
+                <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
+                <button type="submit">Login</button>
+            </form>
+            {error && <p className="error">{error}</p>}
+            <p>Don't have an account? <Link href="/signup">Sign Up</Link></p>
 
-                <div className = "linechart">
-                    < LineChart/>
-                </div> 
-                
-            </div>
         </div>
-     );
-}
- 
-export default Home;
+    );
+};
+
+export default Login;

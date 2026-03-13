@@ -3,13 +3,21 @@
 import { useState, useEffect } from "react";
 import { createClient } from "./supabase/client";
 
-const useFetch = (table, options = {}) => {
-  const [data, setData] = useState(null);
+interface fetchOptions{
+  select?: string;
+  filter?: { col: string; val: string | number };
+  order?: { col: string; asc?: boolean };
+  limit?: number;
+}
+
+const useFetch = (table: string, options:fetchOptions = {}) => {
+  const [data, setData] = useState<any[]|null>(null);
   const [isPending, setIsPending] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string|null>(null);
 
   useEffect(() => {
     let isCancelled = false;
+    const supabase = createClient();
 
     const fetchData = async () => {
       setIsPending(true);
@@ -23,14 +31,14 @@ const useFetch = (table, options = {}) => {
       if (options.order)  query = query.order(options.order.col, { ascending: options.order.asc ?? true });
       if (options.limit)  query = query.limit(options.limit);
 
-      const { data, error } = await query;
+      const { data:fetchedData, error } = await query;
 
       if (!isCancelled) {
         if (error) {
           setError(error.message);
           setIsPending(false);
         } else {
-          setData(data);
+          setData(fetchedData);
           setIsPending(false);
           setError(null);
         }

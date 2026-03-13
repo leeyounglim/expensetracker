@@ -1,9 +1,18 @@
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import useFetch from './useFetch';
-import { getCurrentMonthName } from './utils/Date';
+import useFetch from '@/lib/useFetch';
+import { getCurrentMonthName } from '@/lib/date';
+import type { TooltipItem, ChartOptions } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+interface DataByCat{
+    "Food and Beverage":number;
+    "Activity":number;
+    "Transport":number;
+    "Online Shopping":number;
+    "Other":number;
+}
 
 const ExpensePieChart = () => {
     const currMonth = getCurrentMonthName();
@@ -21,9 +30,9 @@ const ExpensePieChart = () => {
         return itemDate.getMonth() === (months.indexOf(currMonth));
         }
     );
-    const dataByCat = {"Food and Beverage":0,"Activity":0,"Transport":0,"Online Shopping":0, "Other":0}
+    const dataByCat:DataByCat = {"Food and Beverage":0,"Activity":0,"Transport":0,"Online Shopping":0, "Other":0}
     for (const receipt of filteredData){
-        const currCat = receipt.category;
+        const currCat = receipt.category as keyof DataByCat;
         if (dataByCat[currCat] !== undefined){dataByCat[currCat] += Number(receipt.price);}
     }
     const labels =Object.keys(dataByCat);
@@ -64,7 +73,7 @@ const ExpensePieChart = () => {
 
         // Hover effects
         hover: {
-            mode: 'nearest',
+            mode: 'nearest' as const,
             animateScale: true,   // slices grow on hover
         },
 
@@ -83,14 +92,14 @@ const ExpensePieChart = () => {
             tooltip: {
                 enabled: true,
                 callbacks: {
-                    label: (context) => {
+                    label: (context: TooltipItem<'doughnut'>) => {
                         const label = context.label || '';
                         const value = context.parsed;
                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
                         const percentage = ((value / total) * 100).toFixed(1);
                         return ` ${label}: $${value.toFixed(2)} (${percentage}%)`;
                     },
-                    title: (context) => `Category: ${context[0].label}`,
+                    title: (context:TooltipItem<'doughnut'>[]) => `Category: ${context[0].label}`,
                 },
                 backgroundColor: 'rgba(94, 16, 0, 0.8)',
                 titleColor: '#fff',
@@ -102,8 +111,8 @@ const ExpensePieChart = () => {
             // Legend customization
             legend: {
                 display: true,
-                position: 'bottom',       // 'top' | 'bottom' | 'left' | 'right'
-                align: 'center',
+                position: 'bottom' as const,       // 'top' | 'bottom' | 'left' | 'right'
+                align: 'center' as const,
                 labels: {
                     color: '#ffffff',
                     font: {

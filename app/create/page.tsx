@@ -5,12 +5,21 @@ import {createClient} from '@/lib/supabase/client';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
 
+interface ReceiptProps {
+    title: string;
+    category: string;
+    date: string;
+    price: number; 
+    user_id: string;
+}
+
 const Create = () => {
     const { user } = useAuth();
     const router = useRouter();
     const supabase = createClient();
+    if (!user) return null;
 
-    const handleCreate = async(receipt) =>{
+    const handleCreate = async(receipt: ReceiptProps) =>{
         const {error} = await supabase
             .from('receipts')
             .insert({ ...receipt, user_id: user.id});

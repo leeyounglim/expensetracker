@@ -1,8 +1,8 @@
 import { MdOutlineSavings } from "react-icons/md";
 import { FaArrowTrendUp,FaArrowTrendDown } from "react-icons/fa6";
-import useFetch from "./useFetch";
-import { getCurrentMonthName, getCurrentMonthIndex } from "./utils/Date";
-import { getMonthTotal } from "./utils/getMonthTotal";
+import useFetch from "@/lib/useFetch";
+import { getCurrentMonthName, getCurrentMonthIndex } from "@/lib/date";
+import { getMonthTotal } from "@/lib/getMonthTotal";
 
 
 const Savings = () => {
@@ -18,7 +18,7 @@ const Savings = () => {
 
     const incomeEntry = incomeData.find(entry => entry.month === formatMonth);
     const incomeAmount = incomeEntry ? Number(incomeEntry.income) : 0;
-    const expenseAmount = getMonthTotal(currMonthIndex, currDate.getFullYear(), expenseData);
+    const expenseAmount = Number(getMonthTotal(currMonthIndex, currDate.getFullYear(), expenseData));
 
     const savingsrate = incomeAmount > 0 
         ? (((incomeAmount - expenseAmount) / incomeAmount) * 100).toFixed(1) 

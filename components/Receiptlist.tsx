@@ -4,14 +4,26 @@ import NavMonth from './NavMonth'
 import {useState } from "react";
 import { useRouter } from 'next/navigation';
 
-const ReceiptList = ({receipts, handleClick}) => {
+interface receiptlist {
+    receipts: ReceiptProps[];
+    handleClick: (id:string|undefined) => void;
+}
+interface ReceiptProps {
+    id?: string;
+    title: string;
+    category: string;
+    date: Date;
+    price: number; 
+    user_id: string;
+}
 
-    const [selectedMonth, setSelectedMonth] = useState(null);
+const ReceiptList = ({receipts, handleClick}:receiptlist) => {
+
+    const [selectedMonth, setSelectedMonth] = useState <string|null>(null);
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];  
     const router = useRouter();
     const filteredReceipts = receipts.filter(receipt => {
-        
         if (!selectedMonth){
             return true;
         }
@@ -36,7 +48,7 @@ const ReceiptList = ({receipts, handleClick}) => {
                 <div className="receiptpreview" key = {receipt.id}>
                     <h2>{receipt.title}</h2>
                     <p> Category: {receipt.category}<br />
-                        Date: {receipt.date} <br /> 
+                        Date: {new Date(receipt.date).toLocaleDateString()} <br /> 
                     Price: {receipt.price}</p>
                     <button onClick={() => router.push('/edit/'+ receipt.id)}> Edit </button> 
 
