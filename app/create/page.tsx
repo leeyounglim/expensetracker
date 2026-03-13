@@ -17,7 +17,9 @@ const Create = () => {
     const { user } = useAuth();
     const router = useRouter();
     const supabase = createClient();
-    if (!user) return null;
+    if (!user) {
+        return
+    };
 
     const handleCreate = async(receipt: ReceiptProps) =>{
         const {error} = await supabase

@@ -3,10 +3,18 @@
 import  Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/app/providers';
+import { useRouter } from 'next/navigation';
 
 const Navbar = () => {
     const {user, logout} = useAuth();
+    const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+
+    const handleLogout = async () => {
+        await logout();
+        router.push('/login');
+        router.refresh()
+    }
     return (  
         <nav className="navbar">
             
@@ -18,10 +26,10 @@ const Navbar = () => {
                                 onMouseLeave={()=>setIsOpen(false)}
                  className="dropdown-content">
                     <Link href='/create'>Receipt</Link>
-                    <Link href='/incomeForm'>Income Entry</Link>
+                    <Link href='/income'>Income Entry</Link>
                 </div> }
                 <Link href='/manage'>Manage Receipts</Link>
-                {user && <button onClick={logout}>Logout</button> }
+                {user && <button onClick={handleLogout}>Logout</button> }
             </div>
             
         </nav>

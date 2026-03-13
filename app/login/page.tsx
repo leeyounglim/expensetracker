@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/providers';
@@ -9,6 +11,10 @@ const Login = () => {
     const [error, setError] = useState<string|null>(null);
     const { login } = useAuth();
     const router = useRouter();
+    const { user, isPending } = useAuth()
+
+    if (isPending) return null  // or a spinner
+        
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);

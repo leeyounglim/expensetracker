@@ -9,14 +9,15 @@ const Login = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string|null>(null);
-    const { login } = useAuth();
+    const { user, login } = useAuth();
     const router = useRouter();
-    const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.SyntheticEvent) => {
         event.preventDefault();
-        setError(null);
-        const { error } = await login(email, password);
-        if (error) setError(error.message);
-        else router.push('/');
+        console.log('before login');
+        const result = await login(email, password);
+        console.log('after login');
+        if (result.error) setError(result.error.message);
+        else router.push('/home');
     };
 
     return (

@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from "react";
 import  Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -11,6 +13,11 @@ const Signup = () => {
     const [isPending, setIsPending] = useState(false);
     const { signup } = useAuth();
     const router = useRouter();
+
+    const { user } = useAuth()
+
+        if (isPending) return <div>Loading...</div>
+        if (!user) return null 
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();

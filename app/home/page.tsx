@@ -7,8 +7,10 @@ import Savings from "@/components/Savings";
 import { useAuth } from '@/app/providers';
 
 const Home = () => {
-    const {user} = useAuth();
-    if (!user) return (<div>Loading...</div>)
+    const { user, isPending } = useAuth()
+
+    if (isPending) return <div>Loading...</div>
+    if (!user) return null
     return ( 
         <div className="dashboard">
             <h2 className="Greeting"><span>Hello, </span> <span className = "Name"> {user.email}</span></h2> 
