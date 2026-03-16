@@ -20,7 +20,7 @@ const Home = () => {
                 <div className="MonthlyReport">
                     <h3>This Month's Reports</h3>
                 
-                <div className="header">
+                <div>
                     <ViewExpense />
                 </div>
                 <div className="savings">

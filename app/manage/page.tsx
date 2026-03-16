@@ -19,13 +19,14 @@ const Manage = () => {
     const [receipts,setReceipts] = useState<Receipt[]>([]);
     const {data, isPending, error} = useFetch('receipts');
     const {user} = useAuth();
-    if (!user) return null;
+    
 
     const supabase = createClient();
 
     useEffect(() =>{
         if (data) setReceipts(data);
     }, [data])
+    if (!user) return null;
 
     const handleClick = async(id:string|undefined) => {
         const {error} = await supabase

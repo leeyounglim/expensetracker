@@ -28,7 +28,8 @@ const Navbar = () => {
                     <Link href='/create'>Receipt</Link>
                     <Link href='/income'>Income Entry</Link>
                 </div> }
-                <Link href='/manage'>Manage Receipts</Link>
+                <Link href='/manage'>Receipts</Link>
+                <Link href='/emailsetting'>Emails</Link>
                 {user && <button onClick={handleLogout}>Logout</button> }
             </div>
             
