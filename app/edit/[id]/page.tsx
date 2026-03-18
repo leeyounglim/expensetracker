@@ -1,4 +1,5 @@
 // FIX USE PARAMS
+'use client';
 
 import { useEffect, useState } from "react";
 import ReceiptForm from "@/components/ReceiptForm";
@@ -14,7 +15,8 @@ interface ReceiptProps {
 }
 const Edit = () => {
     const router = useRouter();
-    const {id} = useParams();
+    const params = useParams();
+    const id = Array.isArray(params.id) ? params.id[0] : params.id;
     const supabase = createClient();
 
     const [receipt, setReceipt] = useState<ReceiptProps|null>(null);

@@ -5,7 +5,7 @@ import { createClient } from "./supabase/client";
 
 interface fetchOptions{
   select?: string;
-  filter?: { col: string; val: string | number };
+  filter?: { col: string; val: boolean | number };
   order?: { col: string; asc?: boolean };
   limit?: number;
 }

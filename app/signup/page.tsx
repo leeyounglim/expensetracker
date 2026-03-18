@@ -14,11 +14,6 @@ const Signup = () => {
     const { signup } = useAuth();
     const router = useRouter();
 
-    const { user } = useAuth()
-
-        if (isPending) return <div>Loading...</div>
-        if (!user) return null 
-
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);

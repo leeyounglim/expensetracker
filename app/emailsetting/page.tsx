@@ -1,8 +1,9 @@
 'use client';
 import { useAuth } from '@/app/providers'; 
-import { useState } from 'react';
-import { isSet } from 'util/types';
-
+import { useEffect, useState } from 'react';
+import { createClient } from "@/lib/supabase/client";
+import useFetch from '@/lib/useFetch';
+ 
 const banks = [
   { id: "uob", name: "UOB", color: "#0033A0", abbr: "UOB", sender: "unialerts@uobgroup.com" },
   { id: "dbs", name: "DBS / POSB", color: "#E60028", abbr: "DBS", sender: "dbseadvice@dbs.com" },
@@ -34,16 +35,58 @@ interface enabledBankProps{
 const manageEmail = () => {
     const connected = true;
     const {user, isPending} = useAuth();
-    const [enabledBanks, setEnabledBanks] = useState<Record<string,boolean>>({ uob: true, dbs: true });
+    
+    const [enabledBanks, setEnabledBanks] = useState<Record<string,boolean>>({  });
     const [fetchingBank, setFetchingBank] = useState<string|null>(null);
     const [activeTab, setActiveTab] = useState("config");
-    const [isSetup, setIsSetup] = useState(false);
+    const [isSetup, setIsSetup] = useState<boolean| null>(null);
     const [setupStep, setSetupStep] = useState(0); // 0 = landing, 1 = enter email, 2 = enter app password
     const [setupEmail, setSetupEmail] = useState("");
     const [setupPass, setSetupPass] = useState("");
     const [setupConnecting, setSetupConnecting] = useState(false);
+    const [email, setEmail] = useState("");
+    const [fetchingAll, setFetchingAll] = useState(false);
+    const [saving, setSaving] = useState(false);
 
 
+    const { data: settingsData, isPending: settingsPending } = useFetch('email_sync_settings', {
+        select: 'email',
+        limit: 1
+        });
+
+    useEffect(() => {
+    if (settingsPending) return;
+    setIsSetup(settingsData !== null && settingsData.length > 0);
+    }, [settingsData, settingsPending]);
+
+    const supabase = createClient();
+    const {data: bankData} = useFetch('email_sync_banks',{
+        select: 'bank_id, enabled'
+        });
+    useEffect(() => {
+        if (!bankData) return;
+        const mapped = Object.fromEntries(bankData.map(row => [row.bank_id, row.enabled]));
+        setEnabledBanks(mapped);
+    },[bankData])
+
+    async function handleSave() {
+        setSaving(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        const rows = Object.entries(enabledBanks).map(([bank_id, enabled]) => ({
+            user_id: userId,
+            bank_id,
+            enabled
+        }));
+
+        const { error } = await supabase
+            .from('email_sync_banks')
+            .upsert(rows, { onConflict: 'user_id, bank_id' });
+
+        if (error) console.error(error);
+        setSaving(false);
+        }
     async function handleFetchBank(id:string) {
         setFetchingBank(id);
         await new Promise((r) => setTimeout(r, 1600));
@@ -52,17 +95,179 @@ const manageEmail = () => {
 
     function toggleBank(id:string) {
         setEnabledBanks((prev) => ({ ...prev, [id]: !prev[id] }));
+        console.log(enabledBanks)
+    }
+    async function handleConnect() {
+        
+        setSetupConnecting(true);
+        try{
+        await fetch("/api/saveEmail",{
+            method:'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({setupEmail,setupPass})
+        })
+        }catch(err){
+            console.error(err)
+            
+        }
+        setSetupConnecting(false);
+        setIsSetup(true);
+    }
+    async function handleFetchAll() {
+        setFetchingAll(true);
+        await new Promise((r) => setTimeout(r, 2200));
+        setFetchingAll(false);
     }
 
     if (isPending) return 
         <div>Loading...</div>
-    if (!user) return null
+    if (!user) return 
+        <div>no user</div>
+    if (isSetup === null || settingsPending) return(
+        <div>Loading...</div>
+    )
 
-    if(!isSetup) return{
-        
+
+    if (!isSetup) {
+        return (
+        <div className="es-ob-wrap">
+    
+            {/* ── Landing ── */}
+            {setupStep === 0 && (
+            <>
+                <div className="es-eyebrow">Email Sync · Setup</div>
+                <h1 className="es-title">Auto-import bank transactions</h1>
+                <p className="es-desc">
+                Connect your Gmail to automatically detect and import expenses from
+                bank notification emails. No manual entry needed.
+                </p>
+    
+                <div className="es-step-list">
+                <div className="es-step">
+                    <div className="es-step-num">01</div>
+                    <div>
+                    <strong className="es-step-title">Enable IMAP in Gmail</strong>
+                    <span className="es-step-desc">
+                        Settings → See all settings → Forwarding and POP/IMAP → Enable IMAP
+                    </span>
+                    </div>
+                </div>
+                <div className="es-step">
+                    <div className="es-step-num">02</div>
+                    <div>
+                    <strong className="es-step-title">Generate an App Password</strong>
+                    <span className="es-step-desc">
+                        Google Account → Security → 2-Step Verification must be on →{" "}
+                        <a
+                        href="https://myaccount.google.com/apppasswords"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="es-link"
+                        >
+                        App Passwords
+                        </a>{" "}
+                        → create one
+                    </span>
+                    </div>
+                </div>
+                <div className="es-step">
+                    <div className="es-step-num">03</div>
+                    <div>
+                    <strong className="es-step-title">Enter credentials here</strong>
+                    <span className="es-step-desc">
+                        Your password is stored locally and never sent to any server.
+                    </span>
+                    </div>
+                </div>
+                </div>
+    
+                <button className="es-btn-start" onClick={() => setSetupStep(1)}>
+                Get started →
+                </button>
+            </>
+            )}
+    
+            {/* ── Step 1: Email ── */}
+            {setupStep === 1 && (
+            <>
+                <div className="es-progress">
+                <div className="es-prog-dot done" />
+                <div className="es-prog-dot" />
+                </div>
+                <div className="es-eyebrow">Step 1 of 2</div>
+                <h1 className="es-title-sm">Your Gmail address</h1>
+                <div className="es-field-label">Email</div>
+                <input
+                className="es-input"
+                type="email"
+                placeholder="you@gmail.com"
+                value={setupEmail}
+                onChange={(e) => setSetupEmail(e.target.value)}
+                />
+                <div className="es-row">
+                <button className="es-btn-back" onClick={() => setSetupStep(0)}>← Back</button>
+                <button
+                    className="es-btn-connect"
+                    disabled={!setupEmail.includes("@")}
+                    onClick={() => setSetupStep(2)}
+                >
+                    Next →
+                </button>
+                </div>
+            </>
+            )}
+    
+            {/* ── Step 2: App password ── */}
+            {setupStep === 2 && (
+            <>
+                <div className="es-progress">
+                <div className="es-prog-dot done" />
+                <div className="es-prog-dot done" />
+                </div>
+                <div className="es-eyebrow">Step 2 of 2</div>
+                <h1 className="es-title-sm">App Password</h1>
+                <div className="es-field-label">16-character app password</div>
+                <input
+                className="es-input"
+                type="password"
+                placeholder="xxxx xxxx xxxx xxxx"
+                value={setupPass}
+                onChange={(e) => setSetupPass(e.target.value)}
+                />
+                <p className="es-hint">
+                Generate one at{" "}
+                <a
+                    href="https://myaccount.google.com/apppasswords"
+                    target="_blank"
+                    rel="noreferrer"
+                >
+                    myaccount.google.com/apppasswords
+                </a>
+                . Your regular Gmail password won&apos;t work here.
+                </p>
+                <div className="es-row">
+                <button className="es-btn-back" onClick={() => setSetupStep(1)}>← Back</button>
+                <button
+                    className="es-btn-connect"
+                    disabled={setupPass.replace(/\s/g, "").length < 16 || setupConnecting}
+                    onClick={handleConnect}
+                >
+                    {setupConnecting ? (
+                    <><span className="es-spin">↻</span> Connecting…</>
+                    ) : (
+                    "Connect →"
+                    )}
+                </button>
+                </div>
+            </>
+            )}
+    
+        </div>
+        );
     }
+        
 
-    return ( 
+    if (isSetup) return ( 
         <div className = "page-wrap">
             <div className="header">
                 <h1>Email Sync</h1>
@@ -135,8 +340,26 @@ const manageEmail = () => {
                         </div>
                     );
                     })}
+                    <button
+                    className="save-btn"
+                    onClick={handleSave}
+                    disabled={saving}
+                    >
+                    {saving ? (
+                        <><span style={{ display: "inline-block", animation: "spin 0.8s linear infinite" }}>↻</span> Saving…</>
+                    ) : (
+                        <>✓ Save changes</>
+                    )}
+                    </button>
                 </div>
                 </div>
+                <button className="fetch-all-btn" onClick={handleFetchAll} disabled={fetchingAll}>
+                {fetchingAll ? (
+                    <><span style={{ display: "inline-block", animation: "spin 0.8s linear infinite" }}>↻</span> Fetching…</>
+                ) : (
+                    <>↓ Fetch all banks now</>
+                )}
+                </button>
                 </>
             )}            
         </div>
