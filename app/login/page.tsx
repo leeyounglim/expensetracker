@@ -14,13 +14,15 @@ const Login = () => {
     const { user, isPending } = useAuth()
 
     if (isPending) return null  // or a spinner
-        
+
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
         const { error } = await login(email, password);
         if (error) setError(error.message);
-        else router.push('/');
+        else {
+            fetch("api/sync_email", { method: "POST" }).catch(() => {})
+            router.push('/')};
     };
 
     return (
