@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthPage = pathname === '/login' || pathname === '/signup'
+  const isApiRoute = pathname.startsWith('/api/')
+
+  if (isApiRoute) return NextResponse.next()
 
   // Check for Supabase session cookie directly (no createServerClient needed)
   const hasSession = request.cookies.has('sb-dwazttcvdqwqujkjqumw-auth-token') 

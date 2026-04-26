@@ -9,20 +9,35 @@ const Login = () => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<string|null>(null);
-    const { login } = useAuth();
     const router = useRouter();
-    const { user, isPending } = useAuth()
+    const { login, user, isPending } = useAuth()
 
     if (isPending) return null  // or a spinner
 
     const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
+
         const { error } = await login(email, password);
-        if (error) setError(error.message);
-        else {
-            fetch("api/sync_email", { method: "POST" }).catch(() => {})
-            router.push('/')};
+
+        if (error) {
+            setError(error.message)
+            return;
+        }
+        console.log('api run');
+    
+        try {
+            const res = await fetch("/api/syncemail", { method: "POST" });
+            console.log("status:", res.status);
+            
+            const data = await res.json();
+            console.log(data);
+
+            // Only redirect AFTER the fetch completes
+            router.push('/');
+        } catch (err) {
+            console.error("fetch error:", err);
+        }
     };
 
     return (

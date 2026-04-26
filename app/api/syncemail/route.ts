@@ -1,11 +1,13 @@
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import { decrypt } from "@/lib/imap/encryption";
 
-export async function POST() {
-    console.log("yes")
+
+export async function POST(request:Request) {
   const supabase = await createClient();
 
   // get current user
@@ -19,7 +21,13 @@ export async function POST() {
   .eq("user_id", user.id)
   .single();
 
-  if (error || !setting) return NextResponse.json({ error: "No email settings found" }, { status: 404 });
+  // ADD THIS CONSOLE LOG TO DEBUG:
+  if (error || !setting) {
+      console.error("Supabase Query Error:", error);
+      console.log("Returned Setting:", setting);
+      return NextResponse.json({ error: "No email settings found" }, { status: 404 });
+  }
+
 
   // decrypt password
   const password = decrypt(setting.app_password);
