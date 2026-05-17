@@ -40,7 +40,7 @@ const ReceiptList = ({receipts, handleClick}:receiptlist) => {
             <button onClick = {() => router.push('/create')}>Add Receipt</button>
             
             
-            <NavMonth 
+            <NavMonth
             selectedMonth={selectedMonth}
             onMonthChange={setSelectedMonth}/>
 

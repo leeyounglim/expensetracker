@@ -14,6 +14,14 @@ const banks = [
   { id: "citi", name: "Citibank", color: "#003087", abbr: "CITI", sender: "citi.securemail@citi.com" },
 ];
 
+interface PendingReceipt {
+          uid: number;
+          bank: string;
+          date: Date;
+          amount: string;
+          subject: string;
+      }
+
 const manageEmail = () => {
     const connected = true;
     const {user, isPending} = useAuth();
@@ -26,6 +34,7 @@ const manageEmail = () => {
     const [email, setEmail] = useState("");
     const [fetchingAll, setFetchingAll] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
 
 
     const { data: settingsData, isPending: settingsPending } = useFetch('email_sync_settings', {
@@ -94,8 +103,30 @@ const manageEmail = () => {
     }
     async function handleFetchAll() {
         setFetchingAll(true);
-        await new Promise((r) => setTimeout(r, 2200));
-        setFetchingAll(false);
+        console.log('api run')
+        try {
+            const res = await fetch("/api/syncemail", { method: "POST" });
+            console.log("status:", res.status);
+            
+            const data = await res.json();
+            console.log("fetch data:", data);
+
+            if (data.emails && data.emails.length > 0) {
+                setPendingReceipts(data.emails);
+            } else if (data.fetched === 0) {
+                // Optional: Alert the user that there are no new emails right now
+                console.log("No new bank emails to review.");
+            }
+            
+            // No router.push here! Just running the API.
+            
+        } catch (err) {
+            console.error("fetch error:", err);
+        } finally {
+            // This ensures the loading state is turned off 
+            // whether the fetch succeeds OR fails.
+            setFetchingAll(false);
+        }
     }
 
     if (isPending) return 

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ImapFlow } from "imapflow";
 import { simpleParser } from "mailparser";
 import { decrypt } from "@/lib/imap/encryption";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 
 export async function POST(request:Request) {
@@ -17,15 +18,44 @@ export async function POST(request:Request) {
   // get credentials from supabase
   const { data: setting, error } = await supabase
   .from("email_sync_settings")
-  .select("email, app_password, email_sync_banks(bank_id, enabled, banks(bank_email))")
+  .select("email, app_password, last_synced_at")
   .eq("user_id", user.id)
-  .single();
+  .single(); 
+
+// code to fetch for user's active bank emails: 
+const { data: bankData, error: bankError } = await supabase
+  .from("email_sync_banks")
+  .select(`
+    enabled,
+    banks ( bank_email )
+  `)
+  .eq("user_id", user.id)
+  .eq("enabled", true);
+
+if (bankError) {
+  console.error("Bank Fetch Error:", bankError);
+  return NextResponse.json({ error: "Failed to fetch banks" }, { status: 500 });
+}
+
+// 2. Flatten the nested JSON structure into a simple array of strings
+const activeBankEmails = bankData?.map(b => (b.banks as any)?.bank_email?.toLowerCase()) .filter(Boolean) as string[];
+
+// Result: ["alerts@chase.com", "statements@bofa.com"]
+console.log("Active Bank Emails:", activeBankEmails);
 
   // ADD THIS CONSOLE LOG TO DEBUG:
   if (error || !setting) {
       console.error("Supabase Query Error:", error);
       console.log("Returned Setting:", setting);
       return NextResponse.json({ error: "No email settings found" }, { status: 404 });
+  }
+
+  let syncFromDate = new Date();
+  if (setting.last_synced_at) {
+      syncFromDate = new Date(setting.last_synced_at);
+  } else {
+      // Default to 7 days ago for first-time sync
+      syncFromDate.setDate(syncFromDate.getDate() - 7); 
   }
 
 
@@ -51,31 +81,86 @@ export async function POST(request:Request) {
 
   const lock = await client.getMailboxLock("INBOX");
   try {
-    const uids = await client.search({ since: today });
-    if (!uids) return;
+    const uids = await client.search({ since: syncFromDate });
 
-    if (uids.length === 0) {
+    if (!uids || uids.length === 0) {
       console.log("No emails today");
+      await updateLastSynced(supabase, user.id);
       return NextResponse.json({ fetched: 0 });
     }
 
-    for await (const msg of client.fetch(uids, {
-      envelope: true,
-      source: true,
-    })) {
-
-    if(!msg.source) continue
-      const parsed = await simpleParser(msg.source);
-      console.log("Subject:", msg.envelope?.subject);
-      console.log("From:", msg.envelope?.from?.[0]?.address);
-      console.log("Text:", parsed.text);
-      console.log("---");
+    // --- PASS 1: FETCH HEADERS ONLY ---
+    // This is incredibly fast and saves huge amounts of server memory
+    const matchingUids: number[] = [];
+    for await (const msg of client.fetch(uids, { envelope: true })) {
+      const senderEmail = msg.envelope?.from?.[0]?.address?.toLowerCase();
+      
+      // Keep the UID only if the sender matches one of our active bank emails
+      if (senderEmail && activeBankEmails.includes(senderEmail)) {
+        matchingUids.push(msg.uid);
+      }
     }
 
-    return NextResponse.json({ fetched: uids.length });
+    if (matchingUids.length === 0) {
+        console.log(`Scanned ${uids.length} emails. None were from active banks.`);
+        await updateLastSynced(supabase, user.id);
+        return NextResponse.json({ fetched: 0, skipped: uids.length });
+    }
+
+    // --- PASS 2: FETCH FULL BODY ---
+    // Only download the heavy source code for the exact bank emails we found
+    console.log(`Downloading full source for ${matchingUids.length} bank emails...`);
+    interface PendingReceipt {
+          uid: number;
+          bank: string;
+          date: Date;
+          amount: string;
+          subject: string;
+      }
+    const pendingReceipts: PendingReceipt[] = [];
+
+    for await (const msg of client.fetch(matchingUids, { source: true, envelope: true }, {uid : true})) {
+      if (!msg.source) continue;
+      
+      const parsed = await simpleParser(msg.source);
+
+      
+      
+      const textBody = parsed.text || "";
+
+      console.log("=== MATCH FOUND ===");
+      console.log("Subject:", msg.envelope?.subject);
+      console.log("From:", msg.envelope?.from?.[0]?.address);
+      const amountRegex = /\$?\d+(?:,\d{3})*(?:\.\d{2})?/; 
+      const match = textBody.match(amountRegex);
+      const guessedAmount = match ? match[0] : "";
+
+      const pendingReceipt: PendingReceipt = {
+          uid: msg.uid,
+          bank: msg.envelope?.from?.[0].address?.toLowerCase() || "Unkown Bank",
+          date: msg.envelope?.date || new Date(),
+          amount: guessedAmount,
+          subject: msg.envelope?.subject || "No Subject"
+      };
+      console.log(pendingReceipt)
+      pendingReceipts.push(pendingReceipt);
+    }
+
+    await updateLastSynced(supabase, user.id)
+    return NextResponse.json({ 
+      fetched: uids.length,
+      emails: pendingReceipts
+     });
 
   } finally {
     lock.release();
     await client.logout();
+  }
+
+  async function updateLastSynced(supabase: SupabaseClient, userId: string) {
+      await supabase
+          .from("email_sync_settings")
+          .update({ last_synced_at: new Date().toISOString() })
+          .eq("user_id", userId);
   }
 }

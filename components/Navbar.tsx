@@ -29,7 +29,8 @@ const Navbar = () => {
                     <Link href='/income'>Income Entry</Link>
                 </div> }
                 <Link href='/manage'>Receipts</Link>
-                <Link href='/emailsetting'>Emails</Link>
+                <Link href='/inbox'>Inbox</Link>
+                <Link href='/emailsetting'>Settings</Link>
                 {user && <button onClick={handleLogout}>Logout</button> }
             </div>
             
