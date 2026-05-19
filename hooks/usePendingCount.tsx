@@ -15,7 +15,7 @@ export function usePendingCount() {
         // 1. Fetch the initial count on page load
         const fetchCount = async () => {
             const { count, error } = await supabase
-                .from('pending_receipts')
+                .from('pendingReceipts')
                 .select('*', { count: 'exact', head: true }) // head: true means "don't download the data, just count it"
                 .eq('user_id', user.id);
 
@@ -31,7 +31,7 @@ export function usePendingCount() {
         const channel = supabase.channel('custom-all-channel')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'pending_receipts', filter: `user_id=eq.${user.id}` },
+                { event: '*', schema: 'public', table: 'pendingReceipts', filter: `user_id=eq.${user.id}` },
                 (payload) => {
                     // If an email is fetched/inserted, increase count
                     if (payload.eventType === 'INSERT') {

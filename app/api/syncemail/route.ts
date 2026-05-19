@@ -127,6 +127,13 @@ console.log("Active Bank Emails:", activeBankEmails);
       
       
       const textBody = parsed.text || "";
+      const emailText = textBody.toLowerCase(); // Standardize to lowercase for easy checking
+
+      // 1. Check for useless notification phrases
+      if (emailText.includes("is successful")) {
+          console.log("Skipping duplicate success notification");
+          continue; // This immediately stops processing this email and moves to the next one!
+      }
 
       console.log("=== MATCH FOUND ===");
       console.log("Subject:", msg.envelope?.subject);

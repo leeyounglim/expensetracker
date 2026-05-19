@@ -10,44 +10,80 @@
 .body{
   margin :50px;
 }
+
 .navbar {
+  position: sticky;
+  top: 0;
+  background-color: #ffffff; /* CRITICAL: Prevents scrolling text from bleeding through */
+  z-index: 100;
+  border-bottom-color: #4d4d4d;
+
   padding: 20px;
-  display: flex;
-  align-items: center;
-  max-width: 1000px;
+  /* 1. Force a horizontal row */
+  display: flex; 
+  /* 2. Vertically center everything */
+  align-items: center; 
+  /* 3. Push the h1 to the far left, and the .links to the far right! */
+  justify-content: space-between; 
+  
   margin: 0 auto;
   border-bottom: 1px solid #f2f2f2;
 }
-.navbar h1 {
-  color: #f1356d;
-}
 .navbar .links {
   margin-left: auto;
+  /* Add these two lines to force a perfect horizontal row */
+  display: flex;
+  align-items: center;
 }
+
 .navbar a {
   margin-left: 16px;
   text-decoration: none;
   padding: 6px;
+  /* Add these to perfectly center the icons inside the links */
+  display: flex;
+  align-items: center;
 }
+
 .navbar a:hover {
   color: #f1356d;
 }
+
 .navbar label:hover{
   color: #f1356d; 
 }
-.navbar label{
-    margin-left: 20px;
+
+.navbar label {
+  margin-left: 20px;
+  /* Center the plus icon */
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
 
-
-.navbar button{
+.navbar button {
   background: #f1356d;
   color: #fff;
   border: 0;
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
-  margin-left:5px;
+  margin-left: 15px;
+}
+
+/* Add the CSS for your notification dot! */
+.notification-dot {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 10px;
+  width: 10px;
+  background-color: #f1356d; /* Matches your app's pink theme! */
+  border-radius: 50%;
+  border: 2px solid white; /* Creates a cutout effect against the icon */
+
+  display: block; /* Forces the browser to render the empty span */
+  z-index: 10;    /* Guarantees it sits ON TOP of the inbox icon */
 }
 
 .inbox-container {

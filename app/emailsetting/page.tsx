@@ -26,6 +26,7 @@ const manageEmail = () => {
     const {user, isPending} = useAuth();
     
     const [enabledBanks, setEnabledBanks] = useState<Record<string,boolean>>({  });
+    const [savedBanks, setSavedBanks] = useState<Record<string,boolean>>({});
     const [fetchingBank, setFetchingBank] = useState<string|null>(null);
     const [activeTab, setActiveTab] = useState("config");
     const [isSetup, setIsSetup] = useState<boolean| null>(null);
@@ -55,7 +56,12 @@ const manageEmail = () => {
         if (!bankData) return;
         const mapped = Object.fromEntries(bankData.map(row => [row.bank_id, row.enabled]));
         setEnabledBanks(mapped);
+        setSavedBanks(mapped);
     },[bankData])
+
+    const hasChanges = banks.some(bank => 
+        !!enabledBanks[bank.id] !== !!savedBanks[bank.id]
+    );
 
     async function handleSave() {
         setSaving(true);
@@ -72,9 +78,13 @@ const manageEmail = () => {
             .from('email_sync_banks')
             .upsert(rows, { onConflict: 'user_id, bank_id' });
 
-        if (error) console.error(error);
+        if (error) {
+            console.error(error)}
+        else{
+            setSavedBanks(enabledBanks)
+        };
         setSaving(false);
-        }
+    }
     async function handleFetchBank(id:string) {
         setFetchingBank(id);
         await new Promise((r) => setTimeout(r, 1600));
@@ -231,15 +241,6 @@ const confirmDisconnect = window.confirm(
                             <span>{bank.sender}</span>
                         </div>
                         <div className="bank-actions">
-                            {on && (
-                            <button
-                                className={`fetch-btn ${fetching ? "spinning" : ""}`}
-                                onClick={(e) => { e.stopPropagation(); handleFetchBank(bank.id); }}
-                                title="Fetch now"
-                            >
-                                {fetching ? "↻" : "↓"}
-                            </button>
-                            )}
                             <button
                             className={`toggle ${on ? "on" : "off"}`}
                             onClick={() => {
@@ -254,7 +255,7 @@ const confirmDisconnect = window.confirm(
                     <button
                     className="save-btn"
                     onClick={handleSave}
-                    disabled={saving}
+                    disabled={saving || !hasChanges}
                     >
                     {saving ? (
                         <><span style={{ display: "inline-block", animation: "spin 0.8s linear infinite" }}>↻</span> Saving…</>

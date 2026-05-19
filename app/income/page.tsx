@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 interface incomeProps {
     month: string ;
-    income: number;
+    income: number|string;
     id?: string|null ; 
 }
 interface existsProps {
@@ -17,7 +17,7 @@ interface existsProps {
 
 const Income = () => {
     const [month, setMonth] = useState('');
-    const [income, setIncome] = useState(0);
+    const [income, setIncome] = useState<number|string>("");
     const [isPending, setIsPending]  = useState(false);
     const router = useRouter();
     const { user } = useAuth();
@@ -48,12 +48,13 @@ const Income = () => {
     
     const {data: incomeData} = useFetch('income');
     const handleSubmit = async(event: React.SubmitEvent<HTMLFormElement>) =>{
+        const finalIncome = Number(income)
         event.preventDefault();
         setIsPending(true);
         // check if receipt exists
         const exists = Array.isArray(incomeData) && incomeData.find(entry => entry.month === month)
 
-        if (!exists){enterIncome({month,income})}
+        if (!exists){enterIncome({month, income})}
         else {updateIncome({month,income}, exists)}
     }
     return ( 
@@ -74,7 +75,9 @@ const Income = () => {
                 type = 'number'
                  value={income} 
                  placeholder="0.00" 
-                 onChange={(e) => {setIncome(Number(e.target.value))}}/>
+                 onChange={(e) => 
+                 {const val = e.target.value;
+                 {setIncome(val === ""?"": Number(val))}}}/>
                  </label>
                  <br/>
 

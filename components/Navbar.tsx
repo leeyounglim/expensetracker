@@ -49,7 +49,19 @@ const Navbar = () => {
                 )}
                 </div>
                 <Link href='/manage'><IoReceiptOutline/></Link>
-                <Link href='/inbox'><AiOutlineInbox/></Link>
+                <Link 
+                    href='/inbox' 
+                    style={{ position: 'relative' }} // This acts as the anchor for the dot
+                >
+                    <AiOutlineInbox 
+                        size={24} 
+                        style={{ color: hasNewEmails ? '#2563eb' : 'inherit' }} 
+                    />
+                    
+                    {hasNewEmails && (
+                        <span className="notification-dot"></span>
+                    )}
+                </Link>
                 <Link href='/emailsetting'><IoSettingsSharp/></Link>
                 {user && <button onClick={handleLogout}>Logout</button> }
             </div>
