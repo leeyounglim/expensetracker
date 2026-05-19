@@ -64,6 +64,8 @@ const ReceiptForm = ({initialData, onSubmit, buttonText}:ReceiptFormProps) => {
                 <select
                 value = {category}
                 onChange = {(e)=> setCategory(e.target.value)}>
+                required
+                    <option value = '' disabled>Select a category</option>
                     <option value = 'Food and Beverage'>Food and Beverage</option>
                     <option value = 'Transport'>Transport</option>
                     <option value = 'Online Shopping'>Online Shopping</option>

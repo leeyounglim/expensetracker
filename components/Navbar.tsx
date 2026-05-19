@@ -4,11 +4,21 @@ import  Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/app/providers';
 import { useRouter } from 'next/navigation';
+import { IoSettingsSharp } from "react-icons/io5";
+import { AiOutlineInbox } from "react-icons/ai";
+import { IoHomeOutline } from "react-icons/io5";
+import { IoMdAddCircleOutline } from "react-icons/io";
+import { IoReceiptOutline } from "react-icons/io5";
+import { usePendingCount } from '@/hooks/usePendingCount';
+
 
 const Navbar = () => {
     const {user, logout} = useAuth();
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+
+    const pendingCount = usePendingCount();
+    const hasNewEmails = pendingCount > 0;
 
     const handleLogout = async () => {
         await logout();
@@ -20,17 +30,27 @@ const Navbar = () => {
             
             <h1>Expense Tracker</h1>
             <div className = 'links'>
-                <Link href='/home'>Home</Link>
-                <label onMouseEnter = {()=> setIsOpen(true)} onMouseLeave={()=>setIsOpen(false)}>New</label>
-                {isOpen && <div onMouseEnter ={()=> setIsOpen(true)}
-                                onMouseLeave={()=>setIsOpen(false)}
-                 className="dropdown-content">
+                <Link href='/home'><IoHomeOutline/></Link>
+                <div 
+                className="dropdown-container" 
+                onMouseEnter={() => setIsOpen(true)} 
+                onMouseLeave={() => setIsOpen(false)}
+                style={{ position: 'relative', display: 'inline-block' }} // Add this to your CSS class instead if preferred
+                >
+                <label>
+                    <IoMdAddCircleOutline />
+                </label>
+
+                {isOpen && (
+                    <div className="dropdown-content">
                     <Link href='/create'>Receipt</Link>
                     <Link href='/income'>Income Entry</Link>
-                </div> }
-                <Link href='/manage'>Receipts</Link>
-                <Link href='/inbox'>Inbox</Link>
-                <Link href='/emailsetting'>Settings</Link>
+                    </div>
+                )}
+                </div>
+                <Link href='/manage'><IoReceiptOutline/></Link>
+                <Link href='/inbox'><AiOutlineInbox/></Link>
+                <Link href='/emailsetting'><IoSettingsSharp/></Link>
                 {user && <button onClick={handleLogout}>Logout</button> }
             </div>
             

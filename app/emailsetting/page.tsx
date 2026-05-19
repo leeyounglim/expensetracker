@@ -23,7 +23,6 @@ interface PendingReceipt {
       }
 
 const manageEmail = () => {
-    const connected = true;
     const {user, isPending} = useAuth();
     
     const [enabledBanks, setEnabledBanks] = useState<Record<string,boolean>>({  });
@@ -35,6 +34,7 @@ const manageEmail = () => {
     const [fetchingAll, setFetchingAll] = useState(false);
     const [saving, setSaving] = useState(false);
     const [pendingReceipts, setPendingReceipts] = useState<PendingReceipt[]>([]);
+    const [isConnected, setIsConnected] = useState(true);
 
 
     const { data: settingsData, isPending: settingsPending } = useFetch('email_sync_settings', {
@@ -101,6 +101,37 @@ const manageEmail = () => {
         setSetupConnecting(false);
         setIsSetup(true);
     }
+
+    async function handleDelete(){
+const confirmDisconnect = window.confirm(
+            "Are you sure you want to disconnect your email? You will need to set it up again to sync receipts."
+        );
+        
+        if (!confirmDisconnect) return;
+
+        try {
+            // 1. Wipe the credentials from the database
+            if (!user) return null;
+            const { error } = await supabase
+                .from('email_sync_settings')
+                .delete()
+                .eq('user_id', user.id); 
+
+            if (error) throw error;
+
+            // 2. Reset the UI State immediately
+            setIsSetup(false);
+            setIsConnected(false); 
+            
+            // Optional: clear out the old data so it's fresh if they reconnect
+            setEnabledBanks({});
+            setPendingReceipts([]); 
+
+        } catch (err) {
+            console.error("Failed to disconnect email:", err);
+            alert("Failed to disconnect. Please try again.");
+        }
+    }
     async function handleFetchAll() {
         setFetchingAll(true);
         console.log('api run')
@@ -122,6 +153,7 @@ const manageEmail = () => {
             
         } catch (err) {
             console.error("fetch error:", err);
+            setIsConnected(false);
         } finally {
             // This ensures the loading state is turned off 
             // whether the fetch succeeds OR fails.
@@ -149,9 +181,9 @@ const manageEmail = () => {
         <div className = "page-wrap">
             <div className="header">
                 <h1>Email Sync</h1>
-                <div className={`conn-badge ${connected ? "ok" : "err"}`}>
-                    <div className={`dot ${connected ? "ok" : "err"}`} />
-                    {connected ? "Connected" : "Disconnected"}
+                <div className={`conn-badge ${isConnected ? "ok" : "err"}`}>
+                    <div className={`dot ${isConnected ? "ok" : "err"}`} />
+                    {isConnected ? "Connected" : "Disconnected"}
                 </div>
             </div>
             {/* Tabs */}
@@ -171,9 +203,10 @@ const manageEmail = () => {
                     <div className="email-icon">✉</div>
                     <div className="email-text">
                         <strong>{user.email}</strong>
-                        <span>IMAP · Port 993 · TLS</span>
+                        <span>IMAP </span>
                     </div>
-                    <button className="btn-ghost">Change</button>
+                    <button className="btn-ghost" style={{ color: '#E60028' }}
+                    onClick = {()=> handleDelete()}>Disconnect</button>
                     </div>
                 </div>
                 </div>

@@ -111,11 +111,11 @@ console.log("Active Bank Emails:", activeBankEmails);
     // Only download the heavy source code for the exact bank emails we found
     console.log(`Downloading full source for ${matchingUids.length} bank emails...`);
     interface PendingReceipt {
-          uid: number;
-          bank: string;
-          date: Date;
-          amount: string;
-          subject: string;
+          user_id: string;
+          imap_uid: number;
+          title: string;
+          date: string;
+          price: string | number | null;
       }
     const pendingReceipts: PendingReceipt[] = [];
 
@@ -131,21 +131,36 @@ console.log("Active Bank Emails:", activeBankEmails);
       console.log("=== MATCH FOUND ===");
       console.log("Subject:", msg.envelope?.subject);
       console.log("From:", msg.envelope?.from?.[0]?.address);
-      const amountRegex = /\$?\d+(?:,\d{3})*(?:\.\d{2})?/; 
+      const amountRegex = /(?:SGD\s*)?\$?\s*(\d+(?:,\d{3})*(?:\.\d{2})?)/i;      
       const match = textBody.match(amountRegex);
-      const guessedAmount = match ? match[0] : "";
+      const guessedAmount = match && match[1] ? match[1].replace(/[^0-9.]/g, '') : "";      
+      const rawBankEmail = msg.envelope?.from?.[0].address?.toLowerCase() || "Unknown Bank"
+      const cleanBankName = rawBankEmail.includes('@') ? rawBankEmail.split('@')[0] : rawBankEmail;
+      const subject = msg.envelope?.subject || "No Subject"
+
+      const formattedTitle = `${cleanBankName} - ${subject}`;
 
       const pendingReceipt: PendingReceipt = {
-          uid: msg.uid,
-          bank: msg.envelope?.from?.[0].address?.toLowerCase() || "Unkown Bank",
-          date: msg.envelope?.date || new Date(),
-          amount: guessedAmount,
-          subject: msg.envelope?.subject || "No Subject"
+          user_id: user.id,
+          imap_uid: msg.uid,
+          title: formattedTitle,
+          date: msg.envelope?.date ? new Date(msg.envelope.date).toISOString() : new Date().toISOString(),
+          price: guessedAmount || null
       };
       console.log(pendingReceipt)
       pendingReceipts.push(pendingReceipt);
     }
+    if (pendingReceipts.length > 0) {
+        const { error: insertError } = await supabase
+            .from("pendingReceipts")
+            .insert(pendingReceipts);
 
+        if (insertError) {
+            console.error("Supabase Insert Error:", insertError);
+            // Even if insert fails, we might not want to crash the whole response,
+            // but you should log it to figure out what went wrong.
+        }
+    }
     await updateLastSynced(supabase, user.id)
     return NextResponse.json({ 
       fetched: uids.length,
